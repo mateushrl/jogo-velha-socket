@@ -10,10 +10,131 @@
 #define TAMANHO_BUFFER 2     // tamanho do buffer de recepcao e envio
 #define DEFAULT_PORT "27015" // porta de comunicacao que sera usada
 // **************************************************************************
+char jogoDaVelha[3][3]; 
+int linhaConvertida;
+int colunaConvertida;
+
+void iniciarJogo() {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      jogoDaVelha[i][j] = ' ';
+    }
+  }
+}
+
+int verificaPosicaoValida(int linha, int coluna) {
+  if (linha >= 3 || coluna >= 3) {
+    return 0;
+  }
+  return 1;
+}
+int verificaSeGanhoLinha(char player) {
+  for (int i = 0; i < 3; i++) {
+    int igual = 1;
+    for (int j = 0; j < 2; j++) {
+      if (jogoDaVelha[i][j] == player &&
+          jogoDaVelha[i][j] == jogoDaVelha[i][j + 1]) {
+        igual++;
+      }
+    }
+    if (igual == 3)
+      return 1;
+  }
+  return 0;
+}
+int verificaSeGanhoColuna(char player) {
+  for (int i = 0; i < 3; i++) {
+    int igual = 1;
+    for (int j = 0; j < 2; j++) {
+      if (jogoDaVelha[j][i] == player &&
+          jogoDaVelha[j][i] == jogoDaVelha[j + 1][i]) {
+        igual++;
+      }
+    }
+    if (igual == 3)
+      return 1;
+  }
+  return 0;
+}
+int verificaSeGanhoDiagonalPrimaria(char player) {
+  int igual = 1;
+  for (int i = 0; i < 2; i++) {
+    if (jogoDaVelha[i][i] == player &&
+        jogoDaVelha[i][i] == jogoDaVelha[i + 1][i + 1]) {
+      igual++;
+    }
+  }
+  if (igual == 3) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int verificaSeGanhoDiagonalSecundaria(char player) {
+  int igual = 1;
+  for (int i = 0; i < 2; i++) {
+    if (jogoDaVelha[i][3 - i - 1] == player &&
+        jogoDaVelha[i][3 - i - 1] == jogoDaVelha[i + 1][3 - i - 2]) {
+      igual++;
+    }
+  }
+  if (igual == 3) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+void verificarVitoria(char player) {
+  if (verificaSeGanhoLinha(player) == 1 || verificaSeGanhoColuna(player) == 1 ||
+      verificaSeGanhoDiagonalPrimaria(player) == 1 ||
+      verificaSeGanhoDiagonalSecundaria(player) == 1) {
+    printf("Player %c venceu !\n", player);
+  }
+}
+int verificaEmpate() {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (jogoDaVelha[i][j] == ' ') {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+void imprimirAMatriz() {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      printf("| %c | ", jogoDaVelha[i][j]);
+    }
+    printf("\n");
+  }
+  printf("\n\n");
+}
+
+void inserirNaMatriz(int linha, int coluna, char player) {
+  if (verificaPosicaoValida(linha, coluna) == 1) {
+    if (player == 'X' && jogoDaVelha[linha][coluna] == ' ') {
+      jogoDaVelha[linha][coluna] = 'X';
+    } else if (player == 'O' && jogoDaVelha[linha][coluna] == ' ') {
+      jogoDaVelha[linha][coluna] = 'O';
+    }
+    imprimirAMatriz();
+    verificarVitoria(player);
+    if (verificaEmpate() == 1) {
+      printf("Deu Velha !\n");
+    }
+  }
+}
+void convertCharToIntVet(char charRecebido[3]) {
+  linhaConvertida = (int)charRecebido[0] - 48;
+  colunaConvertida = (int)charRecebido[2] - 48;
+}
 
 int __cdecl main(void)
-{
+{	
     // variaveis
+    // Matrix do Jogo da Velha
     WSADATA wsaData; // variavel para o winsock
     int iResult;     // variavel de status
     // sockets para conexao com o servidor
@@ -118,20 +239,21 @@ int __cdecl main(void)
     closesocket(ListenSocket);
 
     char posicao[2];
-    printf("\nO jogo vai comecar");
+    printf("\nO jogo vai comecar\n");
     srand(time(NULL));
     // define qual é o player 'x' ou 'o' sendo 0=x e 1=o
     int player = rand() % 2;
-    if (player == 0)
+    player++;
+    if (player == 1)
     {
         printf("\nVoce e o player X\n");
-        sprintf(sendbuf, "1");
+        sprintf(sendbuf, "2");
         iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
     }
     else
     {
         printf("\nVoce e o player O\n");
-        sprintf(sendbuf, "0");
+        sprintf(sendbuf, "1");
         iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
     }
 
