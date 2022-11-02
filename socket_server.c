@@ -7,19 +7,33 @@
 
 // **************************************************************************
 // definicoes iniciais
-#define TAMANHO_BUFFER 2     // tamanho do buffer de recepcao e envio
+#define TAMANHO_BUFFER 3     // tamanho do buffer de recepcao e envio
 #define DEFAULT_PORT "27015" // porta de comunicacao que sera usada
 // **************************************************************************
 char jogoDaVelha[3][3]; 
 int linhaConvertida;
 int colunaConvertida;
+int resultado = 0;
+
+void imprimirAMatriz() {
+	int i,j;
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("| %c | ", jogoDaVelha[i][j]);
+    }
+    printf("\n");
+  }
+  printf("\n\n");
+}
 
 void iniciarJogo() {
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+	int i, j;
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
       jogoDaVelha[i][j] = ' ';
     }
   }
+  imprimirAMatriz();
 }
 
 int verificaPosicaoValida(int linha, int coluna) {
@@ -29,9 +43,10 @@ int verificaPosicaoValida(int linha, int coluna) {
   return 1;
 }
 int verificaSeGanhoLinha(char player) {
-  for (int i = 0; i < 3; i++) {
+	int i,j;
+  for (i = 0; i < 3; i++) {
     int igual = 1;
-    for (int j = 0; j < 2; j++) {
+    for (j = 0; j < 2; j++) {
       if (jogoDaVelha[i][j] == player &&
           jogoDaVelha[i][j] == jogoDaVelha[i][j + 1]) {
         igual++;
@@ -43,9 +58,10 @@ int verificaSeGanhoLinha(char player) {
   return 0;
 }
 int verificaSeGanhoColuna(char player) {
-  for (int i = 0; i < 3; i++) {
+	int i,j;
+  for (i = 0; i < 3; i++) {
     int igual = 1;
-    for (int j = 0; j < 2; j++) {
+    for (j = 0; j < 2; j++) {
       if (jogoDaVelha[j][i] == player &&
           jogoDaVelha[j][i] == jogoDaVelha[j + 1][i]) {
         igual++;
@@ -58,7 +74,8 @@ int verificaSeGanhoColuna(char player) {
 }
 int verificaSeGanhoDiagonalPrimaria(char player) {
   int igual = 1;
-  for (int i = 0; i < 2; i++) {
+  int i;
+  for (i = 0; i < 2; i++) {
     if (jogoDaVelha[i][i] == player &&
         jogoDaVelha[i][i] == jogoDaVelha[i + 1][i + 1]) {
       igual++;
@@ -73,7 +90,8 @@ int verificaSeGanhoDiagonalPrimaria(char player) {
 
 int verificaSeGanhoDiagonalSecundaria(char player) {
   int igual = 1;
-  for (int i = 0; i < 2; i++) {
+  int i;
+  for (i = 0; i < 2; i++) {
     if (jogoDaVelha[i][3 - i - 1] == player &&
         jogoDaVelha[i][3 - i - 1] == jogoDaVelha[i + 1][3 - i - 2]) {
       igual++;
@@ -89,42 +107,55 @@ void verificarVitoria(char player) {
   if (verificaSeGanhoLinha(player) == 1 || verificaSeGanhoColuna(player) == 1 ||
       verificaSeGanhoDiagonalPrimaria(player) == 1 ||
       verificaSeGanhoDiagonalSecundaria(player) == 1) {
-    printf("Player %c venceu !\n", player);
+       printf("Player %c venceu !\n", player);
+       if(player == 'X'){
+       	resultado = -1;
+	   }
+	   else if(player == 'O'){
+	   	resultado = -2;
+	   }
   }
 }
 int verificaEmpate() {
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+	int i,j;
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
       if (jogoDaVelha[i][j] == ' ') {
         return 0;
       }
     }
   }
+  printf("Deu Velha !\n");
+  resultado = -3;
   return 1;
 }
-void imprimirAMatriz() {
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      printf("| %c | ", jogoDaVelha[i][j]);
-    }
-    printf("\n");
-  }
-  printf("\n\n");
-}
 
-void inserirNaMatriz(int linha, int coluna, char player) {
+
+int inserirNaMatriz(int linha, int coluna, char player) {
+	int sucesso = 0;
   if (verificaPosicaoValida(linha, coluna) == 1) {
     if (player == 'X' && jogoDaVelha[linha][coluna] == ' ') {
       jogoDaVelha[linha][coluna] = 'X';
+      sucesso = 1;
     } else if (player == 'O' && jogoDaVelha[linha][coluna] == ' ') {
       jogoDaVelha[linha][coluna] = 'O';
+      sucesso = 1;
     }
-    imprimirAMatriz();
+    else{
+    	printf("Posicao ja ocupada\n");
+  		sucesso =0;
+	}
     verificarVitoria(player);
-    if (verificaEmpate() == 1) {
-      printf("Deu Velha !\n");
+    if(resultado == 0){
+    verificaEmpate();  
     }
   }
+  else{
+  	printf("Posicao invalida\n");
+  	sucesso =0;
+  }
+  imprimirAMatriz();
+  return sucesso;
 }
 void convertCharToIntVet(char charRecebido[3]) {
   linhaConvertida = (int)charRecebido[0] - 48;
@@ -238,60 +269,98 @@ int __cdecl main(void)
     // No longer need server socket
     closesocket(ListenSocket);
 
-    char posicao[2];
+    char posicao[3];
     printf("\nO jogo vai comecar\n");
     srand(time(NULL));
     // define qual é o player 'x' ou 'o' sendo 0=x e 1=o
-    int player = rand() % 2;
-    player++;
+    int player = (rand() % 2)+ 1;
     if (player == 1)
     {
         printf("\nVoce e o player X\n");
         sprintf(sendbuf, "2");
         iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
     }
-    else
+    else if(player == 2)
     {
         printf("\nVoce e o player O\n");
         sprintf(sendbuf, "1");
         iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
     }
-
+    
+	iniciarJogo();
+	
     // *********************************************************************
     // Estabeleceu conexao com o cliente e pode trocar dados
     do
     {
-
-        if (player == 0)
+        if (player == 1)
         {
+        	int sucessoInserir = 0;
+        	do{
+        	printf("Insira a linha e coluna da posicao(LINHA COLUNA)\n");
             gets(posicao);
+            convertCharToIntVet(posicao);
+            sucessoInserir = inserirNaMatriz(linhaConvertida, colunaConvertida, 'X');
+        	}while(sucessoInserir != 1);       	
             sprintf(sendbuf, posicao);
             iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
+            if(resultado != 0){
+            	break;
+			}
+            
+            
             iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-            printf("Mensagem recebida: \"%s\"\n", recvbuf);
-
-            // guarda na matriz e printa
-            // verifica se ha vitoria, derrota ou empate
+            convertCharToIntVet(recvbuf);
+            inserirNaMatriz(linhaConvertida, colunaConvertida, 'O');
+            
+            verificarVitoria('O');
+            if(resultado == 0){
+            verificaEmpate();
+			}
+            
+            if(resultado != 0){
+            	break;
+			}
+            
         }
 
-        else
+        else if(player == 2)
         {
             iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-            printf("Mensagem recebida: \"%s\"\n", recvbuf);
+            convertCharToIntVet(recvbuf);
+            inserirNaMatriz(linhaConvertida, colunaConvertida, 'X');
+            
+            verificarVitoria('X');
+            if(resultado == 0){
+            verificaEmpate();
+			}
+            
+            if(resultado != 0){
+            	break;
+			}
+			
+            int sucessoInserir = 0;
+        	do{
+        	printf("Insira a linha e coluna da posicao(LINHA COLUNA)\n");
             gets(posicao);
+            convertCharToIntVet(posicao);
+            sucessoInserir = inserirNaMatriz(linhaConvertida, colunaConvertida, 'O');
+        	}while(sucessoInserir != 1);
             sprintf(sendbuf, posicao);
             iSendResult = send(ClientSocket, sendbuf, (int)strlen(sendbuf), 0);
+            
+            if(resultado != 0){
+            	break;
+			}
 
-            // guarda na matriz e printa
-            // verifica se ha vitoria, derrota ou empate
         }
 
-    } while (posicao != "-1");
+    } while (1);
+
 
     // *********************************************************************
     // Encerra a conexao
     iResult = shutdown(ClientSocket, SD_SEND);
-    printf("\nJogo encerrado");
     if (iResult == SOCKET_ERROR)
     {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
